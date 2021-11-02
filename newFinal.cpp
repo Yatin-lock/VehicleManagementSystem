@@ -186,7 +186,7 @@ class Trip : public Entity
     bool completed ;
 
     public:
-    Trip(const Vehicle*vehicle, const User * user, Date startDate, Date endDate, long recordId=0, long startReading = 0, long endReading =0 , double fare = 0.0 , bool isCompleted = false );
+    Trip(const Vehicle*vehicle, const User *user, Date startDate, Date endDate, long recordId=0, long startReading = 0, long endReading =0 , double fare = 0.0 , bool isCompleted = false );
     const User & getUser () const ;
     const Vehicle & getVehicle () const ;
     Date getStartDate () const ;
@@ -669,6 +669,7 @@ void Table<T>:: writeToFile() throw(IOError){
     }
     this->fileStream.close();
 }
+
 template<typename T>
 const T* const Table<T>::getRecordForId(long recordID) const throw(RecordNotFoundError){
     try{
