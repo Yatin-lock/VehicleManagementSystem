@@ -866,7 +866,14 @@ const vector<const Vehicle *> Database ::getVehicle(Date startDate, Date endDate
             for (auto trecord : (this->tripTable->records))
             {
                 Trip *trip = dynamic_cast<Trip *>(trecord);
-                if (trip && !trip->isCompleted() && trip->getVehicle().getRecord() == vehicle->getRecord() && !(trip->getStartDate() >= endDate && trip->getEndDate() >= endDate) && !(trip->getStartDate() <= startDate && trip->getEndDate() <= startDate))
+                if (trip &&
+                    !trip->isCompleted() &&
+                    trip->getVehicle().getRecord() == vehicle->getRecord() &&
+                    !(trip->getStartDate() >= endDate &&
+                    trip->getEndDate() >= endDate) &&
+                    !(trip->getStartDate() <= startDate && 
+                    trip->getEndDate() <= startDate)
+                    )
                 {
                     tripFound = true;
                     break;
