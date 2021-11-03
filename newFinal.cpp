@@ -91,6 +91,10 @@ class MemoryError : public Error
     MemoryError() : Error ("System out of memory") {};
 };
 
+class DateParsingError: public Error
+{
+    public: DateParsingError(): Error("Incorrect date format"){};
+};
 //A helper method which helps spliting the string given a delimeter
 //Splits the string based of a given delimeter and returns the splited string as a vector of strings.
 vector <string> split (const string &s, char delimiter)
@@ -103,6 +107,9 @@ vector <string> split (const string &s, char delimiter)
     {
         tokens.push_back (token);
     }
+    if(delimiter=='/'&&tokens.size()!=3){
+        throw DateParsingError();
+    }
 
     return tokens ;
 }
@@ -114,7 +121,7 @@ class Date: public Issuable{
         tm date;
         bool empty;
     public: 
-        Date(string date);
+        Date(string date) throw (DateParsingError);
         Date();
         bool operator>(Date date) const;
         bool operator<(Date date) const;
@@ -203,7 +210,7 @@ class Trip : public Entity
 };
 
 template<typename T>
-class Table{
+class Table{        
 
     string fileName;
     fstream fileStream;
@@ -287,22 +294,27 @@ Date::Date(){
     this->date = *localtime(&now);
 }
 
-Date::Date(string date){
+Date::Date(string date) throw (DateParsingError){
     if(date.length()<0){
         this->empty=true;
         return;
     }
     this->empty=false;
-    vector<string> dateComponents = split(date,DATEDELIMETER);
-    int day = stoi(dateComponents[0]);
-    int month = stoi(dateComponents[1]);
-    int year = stoi(dateComponents[2]);
-    time_t now =  time(nullptr);
-    this->date = *localtime(&now);
-    this->date.tm_year = year-1900;
-    this->date.tm_mon = month-1;
-    this->date.tm_mday = day;
-    mktime(&this->date);
+    try{
+        vector<string> dateComponents = split(date,DATEDELIMETER);
+        int day = stoi(dateComponents[0]);
+        int month = stoi(dateComponents[1]);
+        int year = stoi(dateComponents[2]);
+        time_t now =  time(nullptr);
+        this->date = *localtime(&now);
+        this->date.tm_year = year-1900;
+        this->date.tm_mon = month-1;
+        this->date.tm_mday = day;
+        mktime(&this->date);
+    }
+    catch( DateParsingError e){
+        e.getMessage();
+    }
 }
 
 bool Date::isEmpty() const{
@@ -1237,6 +1249,7 @@ void Application::renderViewTripMenu() const{
         auto trip = this->db->getTripRef()->getRecordForId(tripId);
         trip->display();
         cout<<endl;
+        system("pause");
     }
     catch(Error e){
         this->showDialog(e.getMessage());
@@ -1303,6 +1316,7 @@ void Application::welcome(){
     system("cls");
     gotoXY(25,5);
     cout<<"Welcome to Vehicle Rental System\n";
+    system("pause");
     this->renderMenu();
 }
 
