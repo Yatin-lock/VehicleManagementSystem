@@ -97,7 +97,7 @@ class DateParsingError: public Error
 };
 //A helper method which helps spliting the string given a delimeter
 //Splits the string based of a given delimeter and returns the splited string as a vector of strings.
-vector <string> split (const string &s, char delimiter)
+vector <string> split (const string &s, char delimiter) throw(DateParsingError)
 {
     vector <string> tokens ;
     string token ;
@@ -313,7 +313,8 @@ Date::Date(string date) throw (DateParsingError){
         mktime(&this->date);
     }
     catch( DateParsingError e){
-        e.getMessage();
+        this->empty=true;
+        cout<<e.getMessage()<<"\n";
     }
 }
 
