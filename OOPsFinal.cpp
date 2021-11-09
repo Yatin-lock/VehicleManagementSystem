@@ -8,6 +8,7 @@ const char DATEDELIMETER = '/';
 //    is written seperated by this Delimeter
 const char DELIMETER = ';';
 
+
 // Abstract class that is the parent of entity class
 // it provides a toString method which have different implementation for every junior class
 class Issuable 
@@ -133,6 +134,7 @@ class Date: public Issuable{
 
 typedef enum { bike = 1, car = 2, bus = 3 } VehicleType;
 
+//Vehicle entity that stores the vehicles info
 class Vehicle : public Entity {
     string registrationNumber;
     VehicleType type;
@@ -163,6 +165,7 @@ public:
     void setDataFrom(Entity *s);
 };
 
+//User entity that stores user's info
 class User: public Entity{
     string name;
     string contact;
@@ -180,6 +183,7 @@ public:
     void setDataFrom(Entity *s);
 };
 
+//Trip entity that stores trip's info
 class Trip : public Entity 
 {
     private:
@@ -193,7 +197,15 @@ class Trip : public Entity
     bool completed ;
 
     public:
-    Trip(const Vehicle*vehicle, const User *user, Date startDate, Date endDate, long recordId=0, long startReading = 0, long endReading =0 , double fare = 0.0 , bool isCompleted = false );
+    Trip(const Vehicle*vehicle,
+        const User *user,
+        Date startDate, 
+        Date endDate, 
+        long recordId=0, 
+        long startReading = 0, 
+        long endReading =0 , 
+        double fare = 0.0 , 
+        bool isCompleted = false );
     const User & getUser () const ;
     const Vehicle & getVehicle () const ;
     Date getStartDate () const ;
@@ -209,6 +221,8 @@ class Trip : public Entity
     void setDataFrom (Entity *s);
 };
 
+
+//templated class Table that stores entity tables and functions to modify them
 template<typename T>
 class Table{        
 
@@ -224,9 +238,12 @@ public:
     Table(string filename) throw (MemoryError);
     long getNextRecordId() const;
     const T *const  getRecordForId(long recordId) const throw (RecordNotFoundError);
+    vector<T*> getRecords(){return records;}
     friend class Database;
 };
 
+
+//Database class that has entity tables and is repsonsible for their updation.
 class Database
 {
 private:
@@ -259,8 +276,8 @@ public:
     void updateRecord(T *record) throw(IOError, RecordNotFoundError);
 };
 
+//Applicaton class that keeps a record of the database and is responsible for driving the program.
 class Application{
-
     Database *db;
     void renderMenu();
     void welcome();
@@ -281,7 +298,7 @@ public:
     void start();
 };
 
-
+//driver code
 int main(){
     Application *app = new  Application();
     app->start();
@@ -445,7 +462,7 @@ void Vehicle::display() const{
     cout<<"Vehicle type: "<<this->getVehicleTypeName()<<endl;
     cout<<"Number of seats: "<<this->seats<<endl;
     cout<<"Company name: "<<this->companyName<<endl;
-    cout<<"Price per km: "<<this->pricePerKm<<endl;
+    cout<<"Price per km: "<<(double)this->pricePerKm<<endl;
     cout<<"PUC Expiration date: "<<this->PUCExpirationDate.toString()<<endl;
 }
 
@@ -551,7 +568,7 @@ double Trip ::completeTrip(long endReading)
     }
 
     this->endReading = endReading;
-    this->fare = (this->endReading - this->startReading) * this->vehicle->getPricePerKm(); //??
+    this->fare = (this->endReading - this->startReading) * this->vehicle->getPricePerKm(); 
     this->completed = true;
     return this->fare;
 }
@@ -626,6 +643,7 @@ template<typename T>
 Table<T> ::Table(string filename) throw (MemoryError){
     this->fileName = filename;
 }
+
 template<typename T>
 long Table<T>::getNextRecordId() const{
     return this->records.size()+1;
@@ -703,7 +721,6 @@ T* Table<T>::getReferenceOfRecordForId(long recordId) const throw (RecordNotFoun
     throw RecordNotFoundError();
 }
 
-
 Database ::Database() throw(IOError, MemoryError)
 {
     try
@@ -730,7 +747,6 @@ void Database ::fetchAllVehicles() throw(IOError, MemoryError)
     {
         throw IOError();
     }
-
     for (string line; getline(this->vehicleTable->fileStream, line);)
     {
         vector<string> components = split(line, DELIMETER);
@@ -740,7 +756,7 @@ void Database ::fetchAllVehicles() throw(IOError, MemoryError)
         auto type = VehicleType(stoi(components[2]));
         auto seats = stoi(components[3]);
         auto companyName = components[4];
-        auto pricePerKm = stod(components[6]);
+        auto pricePerKm = stod(components[5]);
         auto PUCExpirationDate = Date(components[6]);
 
         Vehicle *record = new Vehicle(registrationNumber, type, seats, companyName, pricePerKm, PUCExpirationDate, recordId);
@@ -1050,6 +1066,7 @@ void Application::renderMenu(){
                 break;
             case '8':
                 this->renderCompleteTripMenu();
+                break;
             case '9':
                 this->cleanMemory();
                 system("cls");
@@ -1089,7 +1106,6 @@ void Application::renderAddNewVehicleMenu() const{
     cin>>price;
     cout<<"Enter PUC Expiration Date (dd/mm/yyyy): ";
     cin>>pucExpirationDate;
-
     Vehicle *vehicle;
     try{
         vehicle = 
@@ -1133,7 +1149,7 @@ void Application::renderEditVehicleMenu() const{
         auto vehicle = this->db->getVehicle(regNo);
         Vehicle *newVehicle = new Vehicle(*vehicle);
         vehicle->display();
-        cout<<"Enter new price per KM";
+        cout<<"Enter new price per KM: ";
         getline(cin,price);
         if(price!=""){
             newVehicle->setPricePerKm(stod(price));    
@@ -1210,11 +1226,12 @@ void Application::renderAddNewTripMenu() const{
             return;
         }
         gotoXY(0,12);
-        cout<<"Registration no.    |"<<"Seats    |"<<"Price per KM     |"<<endl;
+        cout<<"Registration no.    |"<<"Seats    |"<<"Price per KM | Company Name"<<endl;
         for(auto vehicle: availableVehicles){
             cout<<setw(13)<<vehicle->getRegistrationNumber()
                 <<setw(10)<<vehicle->getSeats()
-                <<setw(10)<<vehicle->getPricePerKm()<<"Rs. per KM"<<endl;
+                <<setw(13)<<vehicle->getPricePerKm()
+                <<setw(20)<<vehicle->getCompanyName()<<endl;
         }
         fflush(stdin);
         string regNo;
@@ -1303,7 +1320,7 @@ void Application::renderCompleteTripMenu() const{
         this->db->updateRecord(newTrip);
         stringstream ss;
         ss<<"Total Fare: "<<fare;
-        showDialog("Trip completed successfully");
+        showDialog("Trip completed successfully",ss.str());
     }
     catch(Error e){
         this->showDialog(e.getMessage());
@@ -1318,7 +1335,6 @@ void Application::showDialog(string message, string id) const {
     }
     system("pause");
 }
-
 
 void Application::welcome(){
     system("cls");

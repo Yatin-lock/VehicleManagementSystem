@@ -3,6 +3,7 @@
         "*.js": "javascriptreact",
         "fstream": "cpp",
         "iomanip": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "sstream": "cpp"
     }
 }
